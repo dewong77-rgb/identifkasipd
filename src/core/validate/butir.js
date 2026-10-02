@@ -9,7 +9,7 @@ export function butirKosong({ form, butir, b15Hidden }) {
 
 export function validateButir({ form, butir, b15Hidden }) {
   return butirKosong({ form, butir, b15Hidden }).map((b) => ({
-    step: `bagian-${b.kode_bagian}`,
+    step: kodeButir(b),
     field: kodeButir(b),
     kode: kodeButir(b),
     message: `Butir ${kodeButir(b)} belum diisi.`,

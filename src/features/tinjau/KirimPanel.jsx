@@ -8,9 +8,7 @@ const stepHref = (msg, butir) => {
   const g = guessStepFromMessage(msg);
   if (g.step === 'dukung') return '/dukung';
   if (g.step === 'butir') {
-    const b = butir.find((x) => parseInt(String(x.no_butir).replace(/\D+/g, ''), 10) === g.butirNo);
-    const k = `B${String(g.butirNo).padStart(2, '0')}`;
-    return b ? `/wawancara?step=bagian-${b.kode_bagian}&q=${k}&cek=1` : '/wawancara';
+    return `/wawancara?step=B${String(g.butirNo).padStart(2, '0')}&cek=1`;
   }
   return `/wawancara?step=${g.step}&cek=1`;
 };

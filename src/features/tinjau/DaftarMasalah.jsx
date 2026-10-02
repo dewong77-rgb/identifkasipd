@@ -4,7 +4,7 @@ import Icon from '@/ui/Icon.jsx';
 
 const hrefOf = (i) => {
   if (i.step === 'dukung') return '/dukung';
-  if (i.kode) return `/wawancara?step=${i.step}&q=${i.kode}&cek=1`;
+  if (i.kode) return `/wawancara?step=${i.kode}&cek=1`;
   return `/wawancara?step=${i.step}&cek=1`;
 };
 

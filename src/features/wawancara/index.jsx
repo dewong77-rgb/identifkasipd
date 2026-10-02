@@ -10,8 +10,8 @@ import { useSession } from '@/core/context/SessionContext.jsx';
 import { useDukung } from '@/core/hooks/useDukung.js';
 import { isB15Hidden } from '@/core/hooks/useB15.js';
 import { butirKosong } from '@/core/validate/index.js';
-import ProgressSteps from './ProgressSteps.jsx';
-import { buildSteps } from './steps/index.js';
+import Sidebar from './Sidebar.jsx';
+import { bagianList, buildSteps } from './steps/index.js';
 
 function Wizard() {
   const { boot } = useApp();
@@ -30,6 +30,7 @@ function Wizard() {
   const done = Object.fromEntries(steps.map((s, i) => [s.id, issuesPerStep[i].length === 0]));
   const kosong = butirKosong(ctx).length;
   const total = boot.instrumen.butir.length;
+  const bagian = useMemo(() => bagianList(boot.instrumen.butir), [boot]);
   const tampilCek = sp.get('cek') === '1';
 
   const go = (id) => {
@@ -42,7 +43,7 @@ function Wizard() {
     <>
       <PageHeader
         title="Wawancara"
-        subtitle={step.title}
+        subtitle={step.label}
         actions={
           <Link to="/dukung" className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 text-sm font-semibold text-navy hover:bg-navy-50">
             <Icon name="chart" size={16} />
@@ -67,20 +68,22 @@ function Wizard() {
         <ProgressBar value={total - kosong} max={total} label="Butir terisi" right={`${total - kosong} dari ${total}`} tone="gold" />
       </div>
 
-      <ProgressSteps steps={steps} current={step.id} done={done} onGo={go} />
-
-      {tampilCek && issuesPerStep[idx].length > 0 && (
-        <div role="alert" className="mb-4 rounded-md border border-navy bg-navy-50 p-3 text-sm">
-          <p className="font-bold text-navy">Bagian ini masih perlu dilengkapi:</p>
-          <ul className="mt-1 list-disc pl-5">
-            {issuesPerStep[idx].map((i, k) => (
-              <li key={k}>{i.message}</li>
-            ))}
-          </ul>
+      <div className="grid gap-5 lg:grid-cols-[17rem_minmax(0,1fr)]">
+        <Sidebar bagian={bagian} current={step.id} done={done} onGo={go} terisi={total - kosong} total={total} />
+        <div className="min-w-0">
+          {tampilCek && issuesPerStep[idx].length > 0 && (
+            <div role="alert" className="mb-4 rounded-md border border-navy bg-navy-50 p-3 text-sm">
+              <p className="font-bold text-navy">Bagian ini masih perlu dilengkapi:</p>
+              <ul className="mt-1 list-disc pl-5">
+                {issuesPerStep[idx].map((i, k) => (
+                  <li key={k}>{i.message}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <Step key={step.id} {...(step.props || {})} />
         </div>
-      )}
-
-      <Step {...(step.props || {})} />
+      </div>
 
       <div className="sticky bottom-0 -mx-4 mt-6 flex items-center justify-between gap-3 border-t border-line bg-white px-4 py-3">
         <Button variant="secondary" disabled={idx === 0} onClick={() => go(steps[idx - 1].id)}>
@@ -88,7 +91,7 @@ function Wizard() {
           Kembali
         </Button>
         <span className="text-xs text-muted">
-          Langkah {idx + 1} dari {steps.length}
+          {idx + 1} dari {steps.length}
         </span>
         {idx < steps.length - 1 ? (
           <Button onClick={() => go(steps[idx + 1].id)}>
