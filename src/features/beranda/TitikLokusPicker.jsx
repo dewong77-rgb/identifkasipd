@@ -3,7 +3,7 @@ import { fmtRange } from '@/core/lib/format.js';
 
 export default function TitikLokusPicker({ groups, value, onChange }) {
   return (
-    <div role="radiogroup" aria-label="Titik lokus" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div role="radiogroup" aria-label="Tahap pelaksanaan" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {groups.map((g) => {
         const aktif = g.key === value;
         return (

@@ -4,7 +4,7 @@ import BootGate from '@/app/BootGate.jsx';
 import PageHeader, { Card } from '@/ui/PageHeader.jsx';
 import Button from '@/ui/Button.jsx';
 import Icon from '@/ui/Icon.jsx';
-import Combobox from '@/ui/Combobox.jsx';
+import { SelectInput } from '@/ui/Field.jsx';
 import { useApp } from '@/core/context/AppContext.jsx';
 import { useSession } from '@/core/context/SessionContext.jsx';
 import { listDrafts } from '@/core/lib/draftStore.js';
@@ -32,68 +32,87 @@ function BerandaIsi() {
   const { boot, petugasId, setPetugasId, statusMap, statusState, refreshStatus } = useApp();
   const { beginFromDraft } = useSession();
   const nav = useNavigate();
-  const { groups, petugasDi, timDari } = useTitikLokus(boot, statusMap);
+  const { groups, provinsiDi, kabDi, sekolahDi, petugasDi } = useTitikLokus(boot, statusMap);
   const [titikKey, setTitikKey] = useState(() => lsGet('ipd:titik', ''));
+  const [prov, setProv] = useState('');
+  const [kab, setKab] = useState('');
   const [ids, setIds] = useState([]);
   const [manual, setManual] = useState([]);
   const [mulai, setMulai] = useState(null);
   const [lain, setLain] = useState(false);
 
   const titik = groups.find((g) => g.key === titikKey) || null;
-  const daftarPetugas = useMemo(() => (titik ? petugasDi(titik) : []), [titik, petugasDi]);
-  const petugasAda = daftarPetugas.some((p) => p.petugas_id === petugasId);
-  const tim = titik && petugasAda ? timDari(titik, petugasId) : null;
+  const daftarProv = useMemo(() => (titik ? provinsiDi(titik) : []), [titik, provinsiDi]);
+  const provAktif = daftarProv.includes(prov) ? prov : daftarProv.length === 1 ? daftarProv[0] : '';
+  const daftarKab = useMemo(() => (titik && provAktif ? kabDi(titik, provAktif) : []), [titik, provAktif, kabDi]);
+  const kabAktif = daftarKab.some((k) => k.kab === kab) ? kab : daftarKab.length === 1 ? daftarKab[0].kab : '';
+  const sasaran = useMemo(() => (titik && provAktif && kabAktif ? sekolahDi(titik, provAktif, kabAktif) : []), [titik, provAktif, kabAktif, sekolahDi]);
+  const rekan = useMemo(() => petugasDi(sasaran), [sasaran, petugasDi]);
+  const lokasiKey = `${titikKey}|${provAktif}|${kabAktif}`;
 
   const pilihTitik = (k) => {
     setTitikKey(k);
+    setProv('');
+    setKab('');
     lsSet('ipd:titik', k);
   };
 
-  // Pewawancara awal: petugas yang dipilih. Rekan dicentang manual oleh petugas.
+  // Pewawancara awal: petugas yang tersimpan di perangkat bila bertugas di titik lokus ini.
   useEffect(() => {
-    setIds(petugasAda ? [petugasId] : []);
+    setIds(rekan.some((p) => p.petugas_id === petugasId) ? [petugasId] : []);
     setManual([]);
-  }, [petugasId, titikKey, petugasAda]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lokasiKey]);
 
-  const opsiPetugas = daftarPetugas.map((p) => ({ value: p.petugas_id, label: p.nama }));
+  const ubahIds = (v) => {
+    setIds(v);
+    if (v.length) setPetugasId(v[0]);
+  };
+
   const drafManual = listDrafts().filter((d) => d.target?.sumber_lokus === 'manual');
   const awal = { pewawancara_ids: ids, pewawancara_manual: manual };
   const bukaLokus = (l) => setMulai({ target: lokusToTarget(l), tanggalAwal: defaultTanggal(l), jadwal: fmtRange(l.tgl_mulai, l.tgl_selesai), awal });
 
   return (
     <>
-      <PageHeader title="Pilih sekolah sasaran" subtitle="Pilih titik lokus, nama petugas, lalu sekolah yang dikunjungi. Isi semua dulu, kirim sekali di akhir." />
+      <PageHeader title="Pilih sekolah sasaran" subtitle="Pilih tahap, titik lokus (provinsi dan kabupaten atau kota), nama petugas, lalu sekolah yang dikunjungi. Isi semua dulu, kirim sekali di akhir." />
 
       <div className="space-y-7">
-        <Langkah no="1" judul="Pilih titik lokus">
+        <Langkah no="1" judul="Pilih tahap pelaksanaan">
           <TitikLokusPicker groups={groups} value={titikKey} onChange={pilihTitik} />
         </Langkah>
 
-        {titik && (
-          <Langkah no="2" judul="Pilih nama petugas">
-            <div className="max-w-md">
-              <Combobox label="Nama petugas" hint={`Petugas pada Tahap ${titik.tahap}, ${fmtRange(titik.tgl, titik.selesaiTgl)}. Pilihan diingat di perangkat ini.`} options={opsiPetugas} value={petugasAda ? petugasId : ''} onSelect={setPetugasId} placeholder="Ketik nama Anda" />
+          {titik && (
+          <Langkah no="2" judul="Pilih titik lokus">
+            <div className="grid max-w-2xl gap-4 sm:grid-cols-2">
+              <SelectInput label="Provinsi" value={provAktif} onChange={(v) => { setProv(v); setKab(''); }} placeholder="Pilih provinsi" options={daftarProv} />
+              <SelectInput
+                label="Kabupaten atau kota"
+                value={kabAktif}
+                onChange={setKab}
+                placeholder={provAktif ? 'Pilih kabupaten atau kota' : 'Pilih provinsi dulu'}
+                disabled={!provAktif}
+                options={daftarKab.map((k) => ({ value: k.kab, label: `${k.kab} (${k.n} sekolah)` }))}
+              />
             </div>
-            {petugasId && !petugasAda && <p className="rounded-md border border-line bg-navy-50 p-3 text-sm">Nama yang tersimpan tidak bertugas pada titik lokus ini. Pilih nama lain, atau gunakan tombol "Lokus saya tidak ada di sini".</p>}
           </Langkah>
         )}
 
-        {tim && (
+        {sasaran.length > 0 && (
           <>
-            <Langkah no="3" judul="Tim dan jadwal">
+            <Langkah no="3" judul="Pilih nama petugas">
               <Card>
                 <p className="text-sm text-muted">Tanggal kegiatan</p>
                 <p className="font-bold text-ink">{fmtRange(titik.tgl, titik.selesaiTgl)}</p>
                 <div className="mt-4">
-                  <PewawancaraTim rekan={tim.rekan} ids={ids} manual={manual} onIds={setIds} onManual={setManual} />
+                  <PewawancaraTim rekan={rekan} ids={ids} manual={manual} onIds={ubahIds} onManual={setManual} />
                 </div>
               </Card>
             </Langkah>
 
             <Langkah no="4" judul="Pilih sekolah sasaran">
-              {tim.sasaran.length === 0 && <p className="rounded-md border border-line bg-navy-50 p-3 text-sm">Belum ada sekolah sasaran untuk nama ini pada titik lokus ini.</p>}
               <div className="grid gap-3 md:grid-cols-2">
-                {tim.sasaran.map((l) => (
+                {sasaran.map((l) => (
                   <LokusCard key={l.lokus_id} lokus={l} entry={statusMap[String(l.npsn)]} onOpen={() => bukaLokus(l)} />
                 ))}
               </div>

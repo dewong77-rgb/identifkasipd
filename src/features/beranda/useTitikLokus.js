@@ -2,13 +2,16 @@ import { useMemo } from 'react';
 import { toYmd } from '@/core/lib/format.js';
 import { normStatus } from '@/core/lib/status.js';
 
-// Titik lokus = tahap + tanggal kegiatan. Semua turunan dihitung dari bootstrap.
+const SORT = (a, b) => String(a).localeCompare(String(b), 'id');
+export const provDari = (l) => l.prov || 'Provinsi belum tercatat';
+
+// Alur: tahap pelaksanaan (tahap + tanggal) -> provinsi -> kabupaten/kota (titik lokus) -> petugas -> sekolah.
 export function useTitikLokus(boot, statusMap) {
   return useMemo(() => {
     const map = new Map();
     boot.lokus.forEach((l) => {
       const k = `${l.tahap}|${toYmd(l.tgl_mulai)}`;
-      if (!map.has(k)) map.set(k, { key: k, tahap: l.tahap, tgl: l.tgl_mulai, selesaiTgl: l.tgl_selesai, label: l.label_waktu, items: [] });
+      if (!map.has(k)) map.set(k, { key: k, tahap: l.tahap, tgl: l.tgl_mulai, selesaiTgl: l.tgl_selesai, items: [] });
       map.get(k).items.push(l);
     });
     const groups = [...map.values()]
@@ -22,22 +25,19 @@ export function useTitikLokus(boot, statusMap) {
     });
     const nama = new Map(boot.petugas.map((p) => [p.petugas_id, p.nama]));
 
-    // Petugas yang bertugas pada titik lokus tertentu.
-    const petugasDi = (g) => {
+    const provinsiDi = (g) => [...new Set(g.items.map(provDari))].sort(SORT);
+    const kabDi = (g, prov) => {
+      const m = new Map();
+      g.items.filter((l) => provDari(l) === prov).forEach((l) => m.set(l.kab, (m.get(l.kab) || 0) + 1));
+      return [...m.entries()].sort((a, b) => SORT(a[0], b[0])).map(([kab, n]) => ({ kab, n }));
+    };
+    const sekolahDi = (g, prov, kab) =>
+      g.items.filter((l) => provDari(l) === prov && l.kab === kab).sort((a, b) => SORT(a.nama_sekolah, b.nama_sekolah));
+    const petugasDi = (lokusList) => {
       const ids = new Set();
-      g.items.forEach((l) => (plByLokus.get(l.lokus_id) || []).forEach((id) => ids.add(id)));
-      return [...ids].map((id) => ({ petugas_id: id, nama: nama.get(id) || id })).sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
+      lokusList.forEach((l) => (plByLokus.get(l.lokus_id) || []).forEach((id) => ids.add(id)));
+      return [...ids].map((id) => ({ petugas_id: id, nama: nama.get(id) || id })).sort((a, b) => SORT(a.nama, b.nama));
     };
-    // Sekolah sasaran dan rekan satu tim bagi seorang petugas pada titik lokus itu.
-    const timDari = (g, petugasId) => {
-      const sasaran = g.items.filter((l) => plByLokus.get(l.lokus_id)?.has(petugasId));
-      const rekan = new Set();
-      sasaran.forEach((l) => plByLokus.get(l.lokus_id).forEach((id) => rekan.add(id)));
-      return {
-        sasaran,
-        rekan: [...rekan].map((id) => ({ petugas_id: id, nama: nama.get(id) || id })).sort((a, b) => a.nama.localeCompare(b.nama, 'id')),
-      };
-    };
-    return { groups, petugasDi, timDari };
+    return { groups, provinsiDi, kabDi, sekolahDi, petugasDi };
   }, [boot, statusMap]);
 }
