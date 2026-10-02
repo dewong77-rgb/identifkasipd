@@ -84,6 +84,13 @@ function BerandaIsi() {
     <>
       <PageHeader title="Pilih sekolah sasaran" subtitle="Pilih tahap, titik lokus (provinsi dan kabupaten atau kota), tim, nama petugas, lalu sekolah yang dikunjungi. Isi semua dulu, kirim sekali di akhir." />
 
+      <Link to="/panduan" className="mb-5 flex min-h-11 items-center justify-between gap-3 rounded-lg border border-gold bg-gold-50 px-4 py-2 text-sm hover:brightness-95">
+        <span>
+          <strong className="text-navy">Pertama kali memakai alat ini?</strong> Baca panduan penggunaan dulu.
+        </span>
+        <Icon name="next" size={16} className="shrink-0 text-navy" />
+      </Link>
+
       <div className="space-y-7">
         <Langkah no="1" judul="Pilih tahap pelaksanaan">
           <TitikLokusPicker groups={groups} value={titikKey} onChange={pilihTitik} />

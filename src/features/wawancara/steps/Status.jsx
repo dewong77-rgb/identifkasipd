@@ -21,9 +21,9 @@ function Acuan({ dukung }) {
   if (!dukung || dukung.tersedia !== true) return null;
   const s = dukung.sekolah;
   const rows = [
-    ['PD Dapodik terbaru', fmtNum(s.pd_dapo_update)],
-    ['PD BOSP 2026', fmtNum(s.pd_bos_2026)],
-    ['PD BOSP 2027', fmtNum(s.pd_bos_2027)],
+    ['Peserta Didik Dapodik terbaru', fmtNum(s.pd_dapo_update)],
+    ['Peserta Didik BOSP 2026', fmtNum(s.pd_bos_2026)],
+    ['Peserta Didik BOSP 2027', fmtNum(s.pd_bos_2027)],
     ['Selisih Dapodik dan BOSP 2027', fmtSigned(s.selisih_dapo_vs_bos2027)],
     ['Residu NISN', fmtNum(s.residu_nisn)],
     ['Residu NIK', fmtNum(s.residu_nik)],

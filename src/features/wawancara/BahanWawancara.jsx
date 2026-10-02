@@ -13,11 +13,11 @@ function DariDukung({ no, dukung }) {
   if (no === 10 || no === 13) {
     isi = (
       <>
-        Selisih BOSP: <strong>{fmtSigned(selBos)}</strong>. PD BOSP 2026: <strong>{fmtNum(s.pd_bos_2026)}</strong>.
+        Selisih BOSP: <strong>{fmtSigned(selBos)}</strong>. Peserta Didik BOSP 2026: <strong>{fmtNum(s.pd_bos_2026)}</strong>.
       </>
     );
   } else if (no === 15) {
-    isi = dukung.pemicu_b15 ? 'Ada selisih Dapodik dengan PD BOSP 2027, tanyakan butir 15.' : 'Tidak ada selisih, lanjut ke butir 16.';
+    isi = dukung.pemicu_b15 ? 'Ada selisih Dapodik dengan Peserta Didik BOSP 2027, tanyakan butir 15.' : 'Tidak ada selisih, lanjut ke butir 16.';
   } else if (no === 18) {
     isi = (
       <>

@@ -8,5 +8,6 @@ export const ROUTES = [
   { path: '/wawancara', title: 'Wawancara', needsSession: true, Component: lazy(() => import('@/features/wawancara')) },
   { path: '/tinjau', title: 'Tinjau dan kirim', needsSession: true, Component: lazy(() => import('@/features/tinjau')) },
   { path: '/sukses', title: 'Terkirim', needsSession: true, Component: lazy(() => import('@/features/sukses')) },
+  { path: '/panduan', title: 'Panduan', nav: true, Component: lazy(() => import('@/features/panduan')) },
   { path: '/dashboard', title: 'Dashboard', nav: true, Component: lazy(() => import('@/features/dashboard')) },
 ];

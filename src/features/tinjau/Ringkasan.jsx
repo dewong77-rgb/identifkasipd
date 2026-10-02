@@ -48,11 +48,11 @@ export function RingkasanStatus({ form }) {
       </div>
       <dl className="divide-y divide-line">
         <Row k="S1. Sinkron terakhir" v={s.s1_sinkron_terakhir && fmtDate(s.s1_sinkron_terakhir)} />
-        <Row k="S2. PD Dapodik" v={s.s2_pd_dapodik !== '' ? fmtNum(s.s2_pd_dapodik) : ''} />
-        <Row k="S3. PD riil" v={s.s3_pd_riil !== '' ? fmtNum(s.s3_pd_riil) : ''} />
+        <Row k="S2. Peserta didik Dapodik" v={s.s2_pd_dapodik !== '' ? fmtNum(s.s2_pd_dapodik) : ''} />
+        <Row k="S3. Peserta didik riil" v={s.s3_pd_riil !== '' ? fmtNum(s.s3_pd_riil) : ''} />
         <Row k="S4. Selisih (otomatis)" v={s4 === null ? '' : fmtSigned(s4)} />
         <Row k="S5. Residu" v={s.s5_residu_ada === 'Ada' ? `Ada, ${fmtNum(s.s5_residu_jumlah)} (${s.s5_residu_jenis || 'jenis belum diisi'})` : s.s5_residu_ada} />
-        <Row k="S6. PD SK Pagu 2026" v={s.s6_pd_sk_pagu_2026 !== '' ? fmtNum(s.s6_pd_sk_pagu_2026) : 'Tidak diisi'} />
+        <Row k="S6. Peserta didik SK Pagu 2026" v={s.s6_pd_sk_pagu_2026 !== '' ? fmtNum(s.s6_pd_sk_pagu_2026) : 'Tidak diisi'} />
         <Row k="S7. Cek terakhir" v={[s.s7_cek_terakhir_tanggal && fmtDate(s.s7_cek_terakhir_tanggal), s.s7_cek_terakhir_oleh].filter(Boolean).join(', ')} />
         <Row k="S8. Bukti" v={s.s8_bukti_ada} />
       </dl>

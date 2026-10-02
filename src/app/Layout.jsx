@@ -8,18 +8,18 @@ export default function Layout({ children }) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-line bg-white">
-        <div className={`mx-auto flex ${lebar} items-center justify-between gap-3 px-4 py-2`}>
+        <div className={`mx-auto flex ${lebar} items-center flex-wrap justify-between gap-x-3 px-4 py-1`}>
           <Link to="/" className="min-w-0 py-2 text-sm font-bold leading-tight text-navy">
             Identifikasi Pengelolaan Data Peserta Didik
           </Link>
-          <nav aria-label="Menu utama" className="flex shrink-0 gap-1">
+          <nav aria-label="Menu utama" className="flex shrink-0 gap-0.5">
             {ROUTES.filter((r) => r.nav).map((r) => (
               <NavLink
                 key={r.path}
                 to={r.path}
                 end
                 className={({ isActive }) =>
-                  `flex min-h-11 items-center rounded-md px-3 text-sm font-semibold ${isActive ? 'bg-navy-50 text-navy underline decoration-gold decoration-2 underline-offset-8' : 'text-muted hover:bg-navy-50'}`
+                  `flex min-h-11 items-center rounded-md px-2.5 text-sm font-semibold ${isActive ? 'bg-navy-50 text-navy underline decoration-gold decoration-2 underline-offset-8' : 'text-muted hover:bg-navy-50'}`
                 }
               >
                 {r.title}

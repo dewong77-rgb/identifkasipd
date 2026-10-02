@@ -18,9 +18,9 @@ export default function BahanPendalaman({ s, pemicuB15 }) {
       <p className="text-sm text-muted">Angka berikut dapat dipakai sebagai pembuka pertanyaan pada butir terkait.</p>
       <ul className="mt-2 divide-y divide-line">
         <Item butir="B10, B13">
-          Selisih BOSP: <strong>{fmtSigned(selBos)}</strong>. PD BOSP 2026: <strong>{fmtNum(s.pd_bos_2026)}</strong>.
+          Selisih BOSP: <strong>{fmtSigned(selBos)}</strong>. Peserta Didik BOSP 2026: <strong>{fmtNum(s.pd_bos_2026)}</strong>.
         </Item>
-        <Item butir="B15">{pemicuB15 ? 'Ada selisih Dapodik dengan PD BOSP 2027, tanyakan butir 15.' : 'Tidak ada selisih, lanjut ke butir 16.'}</Item>
+        <Item butir="B15">{pemicuB15 ? 'Ada selisih Dapodik dengan Peserta Didik BOSP 2027, tanyakan butir 15.' : 'Tidak ada selisih, lanjut ke butir 16.'}</Item>
         <Item butir="B18">
           Residu NISN: <strong>{fmtNum(s.residu_nisn)}</strong>. Residu NIK: <strong>{fmtNum(s.residu_nik)}</strong>.
         </Item>
