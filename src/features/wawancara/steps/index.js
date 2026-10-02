@@ -11,7 +11,7 @@ import Bagian from './Bagian.jsx';
 export function buildSteps(butir) {
   const bagian = groupBagian(butir);
   return [
-    { id: 'identitas', label: 'Identitas', title: 'Identitas dan responden', Component: Identitas, check: (c) => validateIdentitas(c) },
+    { id: 'identitas', label: 'Identitas', title: 'Identitas dan narasumber', Component: Identitas, check: (c) => validateIdentitas(c) },
     { id: 'status', label: 'Status', title: 'Ringkasan status (S1 sampai S8)', Component: Status, check: (c) => validateStatus(c) },
     ...bagian.map((b) => ({
       id: `bagian-${b.kode}`,

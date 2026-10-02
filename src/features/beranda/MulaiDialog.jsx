@@ -8,10 +8,10 @@ import { normStatus } from '@/core/lib/status.js';
 import StatusBadge from '@/ui/StatusBadge.jsx';
 import { useMulai } from './useMulai.js';
 
-export default function MulaiDialog({ target, tanggalAwal, jadwal, onClose }) {
+export default function MulaiDialog({ target, tanggalAwal, jadwal, awal, onClose }) {
   const { statusMap } = useApp();
   const [tanggal, setTanggal] = useState(toYmd(tanggalAwal));
-  const { draft, busy, error, mulaiBaru, lanjutServer } = useMulai(target, tanggal);
+  const { draft, busy, error, mulaiBaru, lanjutServer } = useMulai(target, tanggal, awal);
   const entry = target.npsn ? statusMap[String(target.npsn)] : null;
   const st = normStatus(entry);
   const manual = target.sumber_lokus === 'manual';

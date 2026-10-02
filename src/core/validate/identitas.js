@@ -16,11 +16,11 @@ export function validateIdentitas({ form, target }) {
   const manual = form.pewawancara_manual.filter((n) => String(n).trim());
   if (form.pewawancara_ids.length + manual.length < 1) add('pewawancara', 'Pilih atau ketik minimal satu pewawancara.');
   const resp = form.responden;
-  if (resp.length > 3) add('responden', 'Responden paling banyak tiga orang.');
+  if (resp.length > 3) add('responden', 'Narasumber paling banyak tiga orang.');
   const terisi = resp.filter((r) => String(r.nama).trim());
-  if (terisi.length < 1) add('responden', 'Isi nama minimal satu responden.');
+  if (terisi.length < 1) add('responden', 'Isi nama minimal satu narasumber.');
   resp.forEach((r, i) => {
-    if (!String(r.nama).trim() && String(r.jabatan).trim()) add(`responden_${i}`, `Responden ${i + 1}: nama belum diisi.`);
+    if (!String(r.nama).trim() && String(r.jabatan).trim()) add(`responden_${i}`, `Narasumber ${i + 1}: nama belum diisi.`);
   });
   return out;
 }

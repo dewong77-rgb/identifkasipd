@@ -5,7 +5,7 @@ import { useSession } from '@/core/context/SessionContext.jsx';
 import { loadDraft, targetKey } from '@/core/lib/draftStore.js';
 
 // Logika memulai atau melanjutkan sesi dari dialog Beranda.
-export function useMulai(target, tanggal) {
+export function useMulai(target, tanggal, awal) {
   const nav = useNavigate();
   const { beginNew, beginFromServer } = useSession();
   const [busy, setBusy] = useState(false);
@@ -14,7 +14,7 @@ export function useMulai(target, tanggal) {
   const draft = loadDraft(key);
 
   const mulaiBaru = () => {
-    beginNew(target, tanggal);
+    beginNew(target, tanggal, awal);
     const dilihat = draft?.form?.data_dukung_dilihat_pada;
     nav(dilihat ? '/wawancara' : '/dukung');
   };

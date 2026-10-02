@@ -1,72 +1,105 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import BootGate from '@/app/BootGate.jsx';
-import PageHeader from '@/ui/PageHeader.jsx';
+import PageHeader, { Card } from '@/ui/PageHeader.jsx';
 import Button from '@/ui/Button.jsx';
 import Icon from '@/ui/Icon.jsx';
+import Combobox from '@/ui/Combobox.jsx';
 import { useApp } from '@/core/context/AppContext.jsx';
 import { useSession } from '@/core/context/SessionContext.jsx';
 import { listDrafts } from '@/core/lib/draftStore.js';
-import { fmtDateTime, fmtRange, toYmd } from '@/core/lib/format.js';
-import PetugasPicker from './PetugasPicker.jsx';
+import { fmtDateTime, fmtRange } from '@/core/lib/format.js';
+import { lsGet, lsSet } from '@/core/lib/storage.js';
 import LokusCard from './LokusCard.jsx';
 import MulaiDialog from './MulaiDialog.jsx';
 import LokusLainDialog from './LokusLainDialog.jsx';
+import TitikLokusPicker from './TitikLokusPicker.jsx';
+import PewawancaraTim from './PewawancaraTim.jsx';
+import { useTitikLokus } from './useTitikLokus.js';
 import { lokusToTarget, manualTarget, defaultTanggal } from './target.js';
+
+const Langkah = ({ no, judul, children }) => (
+  <section aria-label={judul} className="space-y-3">
+    <h2 className="flex items-center gap-2 text-base font-bold text-navy">
+      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-navy text-sm text-white">{no}</span>
+      {judul}
+    </h2>
+    {children}
+  </section>
+);
 
 function BerandaIsi() {
   const { boot, petugasId, setPetugasId, statusMap, statusState, refreshStatus } = useApp();
   const { beginFromDraft } = useSession();
   const nav = useNavigate();
-  const [mulai, setMulai] = useState(null); // { target, tanggal, jadwal }
+  const { groups, petugasDi, timDari } = useTitikLokus(boot, statusMap);
+  const [titikKey, setTitikKey] = useState(() => lsGet('ipd:titik', ''));
+  const [ids, setIds] = useState([]);
+  const [manual, setManual] = useState([]);
+  const [mulai, setMulai] = useState(null);
   const [lain, setLain] = useState(false);
 
-  const milik = useMemo(() => {
-    const ids = new Set(boot.petugas_lokus.filter((x) => x.petugas_id === petugasId).map((x) => x.lokus_id));
-    return boot.lokus.filter((l) => ids.has(l.lokus_id));
-  }, [boot, petugasId]);
+  const titik = groups.find((g) => g.key === titikKey) || null;
+  const daftarPetugas = useMemo(() => (titik ? petugasDi(titik) : []), [titik, petugasDi]);
+  const petugasAda = daftarPetugas.some((p) => p.petugas_id === petugasId);
+  const tim = titik && petugasAda ? timDari(titik, petugasId) : null;
 
-  const grup = useMemo(() => {
-    const m = new Map();
-    [...milik]
-      .sort((a, b) => String(a.tahap).localeCompare(String(b.tahap)) || toYmd(a.tgl_mulai).localeCompare(toYmd(b.tgl_mulai)) || a.nama_sekolah.localeCompare(b.nama_sekolah, 'id'))
-      .forEach((l) => {
-        const k = `${l.tahap}|${toYmd(l.tgl_mulai)}`;
-        if (!m.has(k)) m.set(k, { tahap: l.tahap, label: l.label_waktu, mulai: l.tgl_mulai, selesai: l.tgl_selesai, items: [] });
-        m.get(k).items.push(l);
-      });
-    return [...m.values()];
-  }, [milik]);
+  const pilihTitik = (k) => {
+    setTitikKey(k);
+    lsSet('ipd:titik', k);
+  };
 
+  // Pewawancara awal: petugas yang dipilih. Rekan dicentang manual oleh petugas.
+  useEffect(() => {
+    setIds(petugasAda ? [petugasId] : []);
+    setManual([]);
+  }, [petugasId, titikKey, petugasAda]);
+
+  const opsiPetugas = daftarPetugas.map((p) => ({ value: p.petugas_id, label: p.nama }));
   const drafManual = listDrafts().filter((d) => d.target?.sumber_lokus === 'manual');
-
-  const bukaLokus = (l) => setMulai({ target: lokusToTarget(l), tanggalAwal: defaultTanggal(l), jadwal: fmtRange(l.tgl_mulai, l.tgl_selesai) });
+  const awal = { pewawancara_ids: ids, pewawancara_manual: manual };
+  const bukaLokus = (l) => setMulai({ target: lokusToTarget(l), tanggalAwal: defaultTanggal(l), jadwal: fmtRange(l.tgl_mulai, l.tgl_selesai), awal });
 
   return (
     <>
-      <PageHeader title="Pilih sekolah yang dikunjungi" subtitle="Alat bantu lapangan Direktorat SMA. Isi semua dulu, lalu kirim sekali di akhir." />
+      <PageHeader title="Pilih sekolah sasaran" subtitle="Pilih titik lokus, nama petugas, lalu sekolah yang dikunjungi. Isi semua dulu, kirim sekali di akhir." />
 
-      <div className="max-w-md">
-        <PetugasPicker petugas={boot.petugas} value={petugasId} onChange={setPetugasId} />
-      </div>
+      <div className="space-y-7">
+        <Langkah no="1" judul="Pilih titik lokus">
+          <TitikLokusPicker groups={groups} value={titikKey} onChange={pilihTitik} />
+        </Langkah>
 
-      <div className="mt-6 space-y-6">
-        {!petugasId && <p className="rounded-md border border-line bg-navy-50 p-3 text-sm">Pilih nama Anda untuk melihat lokus yang menjadi tugas Anda.</p>}
-        {petugasId && grup.length === 0 && (
-          <p className="rounded-md border border-line bg-navy-50 p-3 text-sm">Belum ada lokus untuk nama ini. Gunakan tombol di bawah untuk memilih atau menambah sekolah.</p>
-        )}
-        {grup.map((g) => (
-          <section key={`${g.tahap}${g.mulai}`} aria-label={`Tahap ${g.tahap}`}>
-            <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-muted">
-              Tahap {g.tahap}, {g.label || fmtRange(g.mulai, g.selesai)}
-            </h2>
-            <div className="grid gap-3 md:grid-cols-2">
-              {g.items.map((l) => (
-                <LokusCard key={l.lokus_id} lokus={l} entry={statusMap[String(l.npsn)]} onOpen={() => bukaLokus(l)} />
-              ))}
+        {titik && (
+          <Langkah no="2" judul="Pilih nama petugas">
+            <div className="max-w-md">
+              <Combobox label="Nama petugas" hint={`Petugas pada Tahap ${titik.tahap}, ${fmtRange(titik.tgl, titik.selesaiTgl)}. Pilihan diingat di perangkat ini.`} options={opsiPetugas} value={petugasAda ? petugasId : ''} onSelect={setPetugasId} placeholder="Ketik nama Anda" />
             </div>
-          </section>
-        ))}
+            {petugasId && !petugasAda && <p className="rounded-md border border-line bg-navy-50 p-3 text-sm">Nama yang tersimpan tidak bertugas pada titik lokus ini. Pilih nama lain, atau gunakan tombol "Lokus saya tidak ada di sini".</p>}
+          </Langkah>
+        )}
+
+        {tim && (
+          <>
+            <Langkah no="3" judul="Tim dan jadwal">
+              <Card>
+                <p className="text-sm text-muted">Tanggal kegiatan</p>
+                <p className="font-bold text-ink">{fmtRange(titik.tgl, titik.selesaiTgl)}</p>
+                <div className="mt-4">
+                  <PewawancaraTim rekan={tim.rekan} ids={ids} manual={manual} onIds={setIds} onManual={setManual} />
+                </div>
+              </Card>
+            </Langkah>
+
+            <Langkah no="4" judul="Pilih sekolah sasaran">
+              {tim.sasaran.length === 0 && <p className="rounded-md border border-line bg-navy-50 p-3 text-sm">Belum ada sekolah sasaran untuk nama ini pada titik lokus ini.</p>}
+              <div className="grid gap-3 md:grid-cols-2">
+                {tim.sasaran.map((l) => (
+                  <LokusCard key={l.lokus_id} lokus={l} entry={statusMap[String(l.npsn)]} onOpen={() => bukaLokus(l)} />
+                ))}
+              </div>
+            </Langkah>
+          </>
+        )}
 
         {drafManual.length > 0 && (
           <section aria-label="Draf sekolah tambahan">
@@ -120,7 +153,7 @@ function BerandaIsi() {
           }}
           onPickManual={(f) => {
             setLain(false);
-            setMulai({ target: manualTarget(f), tanggalAwal: f.tanggal });
+            setMulai({ target: manualTarget(f), tanggalAwal: f.tanggal, awal });
           }}
         />
       )}

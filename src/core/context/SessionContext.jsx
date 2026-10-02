@@ -8,12 +8,12 @@ import { sesiToForm } from '../lib/sesiMapper.js';
 const Ctx = createContext(null);
 export const useSession = () => useContext(Ctx);
 
-const newForm = (petugasId, tanggal) => ({
+const newForm = (petugasId, tanggal, awal = {}) => ({
   sesi_id: '',
   tanggal_pelaksanaan: toYmd(tanggal),
-  pewawancara_ids: petugasId ? [petugasId] : [],
-  pewawancara_manual: [],
-  responden: [{ nama: '', jabatan: '' }],
+  pewawancara_ids: awal.pewawancara_ids?.length ? awal.pewawancara_ids : petugasId ? [petugasId] : [],
+  pewawancara_manual: awal.pewawancara_manual || [],
+  responden: [],
   status_ringkasan: emptyStatus(),
   jawaban: {},
   data_dukung_dilihat_pada: '',
@@ -31,7 +31,7 @@ export function SessionProvider({ children }) {
   }, [session]);
 
   const beginNew = useCallback(
-    (targetIn, tanggal) => {
+    (targetIn, tanggal, awal) => {
       const target = { ...targetIn, key: targetKey(targetIn) };
       const draft = loadDraft(target.key);
       dirty.current = false;
@@ -40,7 +40,7 @@ export function SessionProvider({ children }) {
         const form = { ...draft.form, tanggal_pelaksanaan: toYmd(tanggal) || draft.form.tanggal_pelaksanaan };
         setSession({ target: { ...target, ...draft.target, key: target.key }, form, restored: true, result: null });
       } else {
-        setSession({ target, form: newForm(petugasId, tanggal), restored: false, result: null });
+        setSession({ target, form: newForm(petugasId, tanggal, awal), restored: false, result: null });
       }
     },
     [petugasId]

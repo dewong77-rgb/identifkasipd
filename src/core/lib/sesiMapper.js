@@ -34,7 +34,7 @@ export function sesiToForm(sesi, { petugasNamaToId = {} } = {}) {
     tanggal_pelaksanaan: toYmd(meta.tanggal_pelaksanaan),
     pewawancara_ids: ids,
     pewawancara_manual: manual,
-    responden: resp.length ? resp : [{ nama: '', jabatan: '' }],
+    responden: resp,
     status_ringkasan: status,
     jawaban,
     data_dukung_dilihat_pada: str(meta.data_dukung_dilihat_pada),

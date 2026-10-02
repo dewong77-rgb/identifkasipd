@@ -6,6 +6,7 @@ import Button from '@/ui/Button.jsx';
 import Icon from '@/ui/Icon.jsx';
 import { useApp } from '@/core/context/AppContext.jsx';
 import { useSession } from '@/core/context/SessionContext.jsx';
+import Narasumber from './Narasumber.jsx';
 
 const Chip = ({ children, onRemove }) => (
   <span className="inline-flex min-h-9 items-center gap-1 rounded-full border border-navy bg-navy-50 py-1 pl-3 pr-1 text-sm font-semibold text-navy">
@@ -31,8 +32,6 @@ export default function Identitas() {
         .map((p) => ({ value: p.petugas_id, label: p.nama })),
     [boot.petugas, form.pewawancara_ids]
   );
-
-  const setResp = (i, k, v) => updateForm((f) => ({ ...f, responden: f.responden.map((r, j) => (j === i ? { ...r, [k]: v } : r)) }));
 
   return (
     <div className="space-y-4">
@@ -101,34 +100,7 @@ export default function Identitas() {
         </div>
       </Card>
 
-      <Card>
-        <h3 className="mb-1 font-bold text-navy">Responden</h3>
-        <p className="mb-3 text-sm text-muted">Satu sampai tiga orang. Nama wajib, jabatan dianjurkan.</p>
-        <div className="space-y-4">
-          {form.responden.map((r, i) => (
-            <div key={i} className="rounded-md border border-line p-3">
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-sm font-bold text-ink">Responden {i + 1}</p>
-                {form.responden.length > 1 && (
-                  <button type="button" className="min-h-11 px-2 text-sm font-semibold text-navy underline" onClick={() => updateForm((f) => ({ ...f, responden: f.responden.filter((_, j) => j !== i) }))}>
-                    Hapus
-                  </button>
-                )}
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <TextInput label="Nama" required={i === 0} value={r.nama} onChange={(e) => setResp(i, 'nama', e.target.value)} />
-                <TextInput label="Jabatan" placeholder="Kepala sekolah, operator, bendahara" value={r.jabatan} onChange={(e) => setResp(i, 'jabatan', e.target.value)} />
-              </div>
-            </div>
-          ))}
-        </div>
-        {form.responden.length < 3 && (
-          <Button variant="secondary" className="mt-3" onClick={() => updateForm((f) => ({ ...f, responden: [...f.responden, { nama: '', jabatan: '' }] }))}>
-            <Icon name="plus" size={16} />
-            Tambah responden
-          </Button>
-        )}
-      </Card>
+      <Narasumber />
     </div>
   );
 }

@@ -23,7 +23,7 @@ export function RingkasanIdentitas({ form, target, petugas }) {
   return (
     <Card>
       <div className="flex items-center justify-between">
-        <h2 className="font-bold text-navy">Identitas dan responden</h2>
+        <h2 className="font-bold text-navy">Identitas dan narasumber</h2>
         <Edit step="identitas" />
       </div>
       <dl className="divide-y divide-line">
@@ -31,7 +31,7 @@ export function RingkasanIdentitas({ form, target, petugas }) {
         <Row k="Kabupaten atau kota" v={target.kab} />
         <Row k="Tanggal pelaksanaan" v={fmtDate(form.tanggal_pelaksanaan)} />
         <Row k="Pewawancara" v={pw} />
-        <Row k="Responden" v={form.responden.filter((r) => r.nama.trim()).map((r) => `${r.nama}${r.jabatan ? ` (${r.jabatan})` : ''}`).join('; ')} />
+        <Row k="Narasumber" v={form.responden.filter((r) => r.nama.trim()).map((r) => `${r.nama}${r.jabatan ? ` (${r.jabatan})` : ''}`).join('; ')} />
       </dl>
     </Card>
   );
