@@ -1,23 +1,11 @@
 import { Card } from '@/ui/PageHeader.jsx';
 import { fmtScore } from '@/core/lib/format.js';
 
-// Penjelasan mengikuti istilah Indikator Kualitas Data Dapodik (IKD), Kemendikdasmen.
+// Definisi mengikuti paparan Indeks Kualitas Dapodik (Kemendikdasmen) dan laman IKD BPMP.
 const ROWS = [
-  {
-    k: 'kelengkapan',
-    label: 'Kelengkapan',
-    arti: 'Seberapa lengkap data pokok sekolah terisi di Dapodik, misalnya data sekolah, peserta didik, pendidik, rombongan belajar, ruang, dan bangunan. Makin tinggi, makin sedikit isian yang kosong.',
-  },
-  {
-    k: 'validitas',
-    label: 'Validitas',
-    arti: 'Seberapa sesuai isian dengan aturan pengisian, misalnya format NISN dan NIK, tanggal lahir yang wajar, dan usia yang sesuai jenjang. Makin tinggi, makin sedikit isian yang salah format atau tidak masuk akal.',
-  },
-  {
-    k: 'mutakhir',
-    label: 'Kemutakhiran',
-    arti: 'Seberapa baru data diperbarui dan disinkronkan, misalnya sinkronisasi rutin tiap semester. Makin tinggi, makin terkini datanya.',
-  },
+  { k: 'kelengkapan', label: 'Kelengkapan (Completeness)', arti: 'Ukuran tingkat keterisian dan kelengkapan setiap entitas data pokok pendidikan.' },
+  { k: 'validitas', label: 'Validitas (Validity)', arti: 'Ukuran tingkat kesesuaian data dengan standar atau aturan yang telah ditetapkan.' },
+  { k: 'mutakhir', label: 'Mutakhir (Up to date)', arti: 'Ukuran kemutakhiran atau kebaruan data pokok pendidikan, untuk memastikan data yang dikumpulkan melalui Dapodik adalah data terkini.' },
 ];
 const clamp = (v) => Math.max(0, Math.min(100, Number(v)));
 const has = (v) => v !== null && v !== undefined && v !== '' && !Number.isNaN(Number(v));
@@ -45,7 +33,7 @@ export default function QualityBars({ s, pembanding }) {
     <Card aria-label="Indeks Kualitas Data Dapodik">
       <h2 className="text-base font-bold text-navy">Indeks Kualitas Data Dapodik (skala 0 sampai 100)</h2>
       <p className="mt-1 text-sm text-ink">
-        Ukuran kualitas data pokok pendidikan di satuan pendidikan, dinilai dari tiga aspek: lengkap, valid, dan mutakhir. Nilai ini bahan diskusi, bukan penilaian terhadap sekolah.
+        Nilai yang menggambarkan kualitas data Dapodik suatu sekolah, dihitung dari rata-rata tiga komponen: kelengkapan, validitas, dan mutakhir. Nilai ini bahan diskusi, bukan penilaian terhadap sekolah.
       </p>
       <div className="mb-4 mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">
         <span className="inline-flex items-center gap-1.5">
