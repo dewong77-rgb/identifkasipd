@@ -15,6 +15,7 @@ import MulaiDialog from './MulaiDialog.jsx';
 import LokusLainDialog from './LokusLainDialog.jsx';
 import TitikLokusPicker from './TitikLokusPicker.jsx';
 import PewawancaraTim from './PewawancaraTim.jsx';
+import PilihTim from './PilihTim.jsx';
 import { useTitikLokus } from './useTitikLokus.js';
 import { lokusToTarget, manualTarget, defaultTanggal } from './target.js';
 
@@ -32,10 +33,11 @@ function BerandaIsi() {
   const { boot, petugasId, setPetugasId, statusMap, statusState, refreshStatus } = useApp();
   const { beginFromDraft } = useSession();
   const nav = useNavigate();
-  const { groups, provinsiDi, kabDi, sekolahDi, petugasDi } = useTitikLokus(boot, statusMap);
+  const { groups, provinsiDi, kabDi, timDi } = useTitikLokus(boot, statusMap);
   const [titikKey, setTitikKey] = useState(() => lsGet('ipd:titik', ''));
   const [prov, setProv] = useState('');
   const [kab, setKab] = useState('');
+  const [timId, setTimId] = useState('');
   const [ids, setIds] = useState([]);
   const [manual, setManual] = useState([]);
   const [mulai, setMulai] = useState(null);
@@ -46,14 +48,19 @@ function BerandaIsi() {
   const provAktif = daftarProv.includes(prov) ? prov : daftarProv.length === 1 ? daftarProv[0] : '';
   const daftarKab = useMemo(() => (titik && provAktif ? kabDi(titik, provAktif) : []), [titik, provAktif, kabDi]);
   const kabAktif = daftarKab.some((k) => k.kab === kab) ? kab : daftarKab.length === 1 ? daftarKab[0].kab : '';
-  const sasaran = useMemo(() => (titik && provAktif && kabAktif ? sekolahDi(titik, provAktif, kabAktif) : []), [titik, provAktif, kabAktif, sekolahDi]);
-  const rekan = useMemo(() => petugasDi(sasaran), [sasaran, petugasDi]);
-  const lokasiKey = `${titikKey}|${provAktif}|${kabAktif}`;
+  const daftarTim = useMemo(() => (titik && provAktif && kabAktif ? timDi(titik, provAktif, kabAktif) : []), [titik, provAktif, kabAktif, timDi]);
+  // Bila hanya satu tim, atau tim petugas yang tersimpan ada di sini, terpilih otomatis.
+  const timOtomatis = daftarTim.length === 1 ? daftarTim[0].id : daftarTim.find((t) => t.petugas.some((p) => p.petugas_id === petugasId))?.id || '';
+  const timAktif = daftarTim.find((t) => t.id === timId) || daftarTim.find((t) => t.id === timOtomatis) || null;
+  const sasaran = timAktif ? timAktif.sekolah : [];
+  const rekan = timAktif ? timAktif.petugas : [];
+  const lokasiKey = `${titikKey}|${provAktif}|${kabAktif}|${timAktif?.id || ''}`;
 
   const pilihTitik = (k) => {
     setTitikKey(k);
     setProv('');
     setKab('');
+    setTimId('');
     lsSet('ipd:titik', k);
   };
 
@@ -75,7 +82,7 @@ function BerandaIsi() {
 
   return (
     <>
-      <PageHeader title="Pilih sekolah sasaran" subtitle="Pilih tahap, titik lokus (provinsi dan kabupaten atau kota), nama petugas, lalu sekolah yang dikunjungi. Isi semua dulu, kirim sekali di akhir." />
+      <PageHeader title="Pilih sekolah sasaran" subtitle="Pilih tahap, titik lokus (provinsi dan kabupaten atau kota), tim, nama petugas, lalu sekolah yang dikunjungi. Isi semua dulu, kirim sekali di akhir." />
 
       <div className="space-y-7">
         <Langkah no="1" judul="Pilih tahap pelaksanaan">
@@ -85,11 +92,11 @@ function BerandaIsi() {
           {titik && (
           <Langkah no="2" judul="Pilih titik lokus">
             <div className="grid max-w-2xl gap-4 sm:grid-cols-2">
-              <SelectInput label="Provinsi" value={provAktif} onChange={(v) => { setProv(v); setKab(''); }} placeholder="Pilih provinsi" options={daftarProv} />
+              <SelectInput label="Provinsi" value={provAktif} onChange={(v) => { setProv(v); setKab(''); setTimId(''); }} placeholder="Pilih provinsi" options={daftarProv} />
               <SelectInput
                 label="Kabupaten atau kota"
                 value={kabAktif}
-                onChange={setKab}
+                onChange={(v) => { setKab(v); setTimId(''); }}
                 placeholder={provAktif ? 'Pilih kabupaten atau kota' : 'Pilih provinsi dulu'}
                 disabled={!provAktif}
                 options={daftarKab.map((k) => ({ value: k.kab, label: `${k.kab} (${k.n} sekolah)` }))}
@@ -98,9 +105,15 @@ function BerandaIsi() {
           </Langkah>
         )}
 
+        {daftarTim.length > 0 && (
+          <Langkah no="3" judul="Pilih tim">
+            <PilihTim tims={daftarTim} value={timAktif?.id || ''} onChange={setTimId} />
+          </Langkah>
+        )}
+
         {sasaran.length > 0 && (
           <>
-            <Langkah no="3" judul="Pilih nama petugas">
+            <Langkah no="4" judul="Pilih nama petugas">
               <Card>
                 <p className="text-sm text-muted">Tanggal kegiatan</p>
                 <p className="font-bold text-ink">{fmtRange(titik.tgl, titik.selesaiTgl)}</p>
@@ -110,7 +123,7 @@ function BerandaIsi() {
               </Card>
             </Langkah>
 
-            <Langkah no="4" judul="Pilih sekolah sasaran">
+            <Langkah no="5" judul="Pilih sekolah sasaran">
               <div className="grid gap-3 md:grid-cols-2">
                 {sasaran.map((l) => (
                   <LokusCard key={l.lokus_id} lokus={l} entry={statusMap[String(l.npsn)]} onOpen={() => bukaLokus(l)} />

@@ -38,6 +38,17 @@ export function useTitikLokus(boot, statusMap) {
       lokusList.forEach((l) => (plByLokus.get(l.lokus_id) || []).forEach((id) => ids.add(id)));
       return [...ids].map((id) => ({ petugas_id: id, nama: nama.get(id) || id })).sort((a, b) => SORT(a.nama, b.nama));
     };
-    return { groups, provinsiDi, kabDi, sekolahDi, petugasDi };
+    // Tim yang punya sekolah di kabupaten/kota terpilih. Sekolah tim = semua sekolahnya pada tahap itu.
+    const timDi = (g, prov, kab) => {
+      const kunci = (l) => l.tim_id || `tanpa-tim-${l.lokus_id}`;
+      const ids = [...new Set(g.items.filter((l) => provDari(l) === prov && l.kab === kab).map(kunci))];
+      return ids
+        .map((id) => {
+          const sekolah = g.items.filter((l) => kunci(l) === id).sort((a, b) => SORT(a.nama_sekolah, b.nama_sekolah));
+          return { id, label: sekolah[0].tim_id || 'Tanpa tim', sekolah, petugas: petugasDi(sekolah) };
+        })
+        .sort((a, b) => SORT(a.label, b.label));
+    };
+    return { groups, provinsiDi, kabDi, sekolahDi, petugasDi, timDi };
   }, [boot, statusMap]);
 }
